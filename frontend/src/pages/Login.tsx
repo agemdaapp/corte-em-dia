@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { getSession, signIn } from '../services/auth'
+import { ensureProfile, getSession, signIn } from '../services/auth'
 
 function Login() {
   const navigate = useNavigate()
@@ -41,6 +41,8 @@ function Login() {
       setError('Credenciais inválidas.')
       return
     }
+
+    await ensureProfile()
 
     navigate('/agenda', { replace: true })
   }

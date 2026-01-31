@@ -4,7 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Agenda from '../pages/Agenda'
 import Login from '../pages/Login'
 import Services from '../pages/Services'
-import { getSession } from '../services/auth'
+import { ensureProfile, getSession } from '../services/auth'
 
 type AuthState = 'loading' | 'authenticated' | 'unauthenticated'
 
@@ -18,12 +18,18 @@ function RequireAuth({ children }: RequireAuthProps) {
   useEffect(() => {
     let isMounted = true
 
-    getSession().then(({ data }) => {
+    getSession().then(async ({ data }) => {
       if (!isMounted) {
         return
       }
 
-      setState(data.session ? 'authenticated' : 'unauthenticated')
+      if (data.session) {
+        await ensureProfile()
+        setState('authenticated')
+        return
+      }
+
+      setState('unauthenticated')
     })
 
     return () => {
