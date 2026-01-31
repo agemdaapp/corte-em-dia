@@ -1,6 +1,9 @@
 import { Router } from 'express'
 
-import { createAppointment } from '../controllers/appointments.controller'
+import {
+  createAppointment,
+  listAppointments,
+} from '../controllers/appointments.controller'
 import { authMiddleware } from '../middlewares/auth'
 
 const router = Router()
@@ -8,6 +11,7 @@ const router = Router()
 // Criação exige usuário autenticado.
 router.use(authMiddleware)
 
+router.get('/', listAppointments)
 router.post('/', createAppointment)
 
 export default router

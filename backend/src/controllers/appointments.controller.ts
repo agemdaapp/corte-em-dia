@@ -67,6 +67,15 @@ function toUtcMinutes(dateTime: string) {
   return parsed.getUTCHours() * 60 + parsed.getUTCMinutes()
 }
 
+function addMinutesToUtc(dateTime: string, minutes: number) {
+  const parsed = new Date(dateTime)
+  if (Number.isNaN(parsed.getTime())) {
+    return null
+  }
+  parsed.setUTCMinutes(parsed.getUTCMinutes() + minutes)
+  return parsed.toISOString()
+}
+
 function buildAppointmentWindows(rows: Array<{
   start_time: string | null
   end_time: string | null
@@ -108,6 +117,53 @@ function hasCollision(
   return windows.some(
     (window) => startMinutes < window.endMinutes && endMinutes > window.startMinutes
   )
+}
+
+export async function listAppointments(req: Request, res: Response) {
+  if (!ensureAuthenticated(req, res)) {
+    return
+  }
+
+  const date = String(req.query.date ?? '')
+
+  if (!date || !isValidDateString(date)) {
+    return res.status(400).json({ error: 'Invalid date' })
+  }
+
+  const startOfDay = `${date}T00:00:00.000Z`
+  const endOfDay = `${date}T23:59:59.999Z`
+
+  const { data, error } = await supabase
+    .from('appointments')
+    .select(
+      'id, start_time, end_time, service:services(name, duration_minutes), client:profiles(name)'
+    )
+    .gte('start_time', startOfDay)
+    .lte('start_time', endOfDay)
+    .order('start_time', { ascending: true })
+
+  if (error) {
+    return res.status(500).json({ error: 'Internal Server Error' })
+  }
+
+  const normalized = (data ?? []).map((item) => {
+    const duration =
+      item.service && typeof item.service.duration_minutes === 'number'
+        ? item.service.duration_minutes
+        : null
+    const endTime =
+      item.end_time ??
+      (item.start_time && duration !== null
+        ? addMinutesToUtc(item.start_time, duration)
+        : null)
+
+    return {
+      ...item,
+      end_time: endTime ?? item.end_time,
+    }
+  })
+
+  return res.status(200).json({ data: normalized })
 }
 
 export async function createAppointment(req: Request, res: Response) {
