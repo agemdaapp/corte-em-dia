@@ -312,7 +312,11 @@ export async function createAppointment(req: Request, res: Response) {
     return res.status(404).json({ error: 'Service not found' })
   }
 
-  if (service.professional_id && service.professional_id !== req.user.id) {
+  if (
+    req.user.role === 'professional' &&
+    service.professional_id &&
+    service.professional_id !== req.user.id
+  ) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
@@ -467,6 +471,10 @@ export async function updateAppointment(req: Request, res: Response) {
 
   if (!service) {
     return res.status(404).json({ error: 'Service not found' })
+  }
+
+  if (service.professional_id && service.professional_id !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' })
   }
 
   const durationMinutes = service.duration_minutes

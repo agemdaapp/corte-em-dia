@@ -45,6 +45,10 @@ type AppointmentFormState = {
   startTime: string
 }
 
+const DAY_START_MINUTES = 8 * 60
+const DAY_END_MINUTES = 18 * 60
+const SLOT_INTERVAL_MINUTES = 15
+
 function getToday() {
   const today = new Date()
   const year = today.getFullYear()
@@ -71,6 +75,34 @@ function formatTime(value?: string | null) {
   const hours = String(date.getUTCHours()).padStart(2, '0')
   const minutes = String(date.getUTCMinutes()).padStart(2, '0')
   return `${hours}:${minutes}`
+}
+
+function parseTimeToMinutes(value: string) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value)
+  if (!match) {
+    return null
+  }
+
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null
+  }
+
+  return hours * 60 + minutes
+}
+
+function formatMinutes(minutes: number) {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
 }
 
 function parseDateTimeToUtcParts(dateTime: string | null) {
@@ -172,6 +204,42 @@ function Agenda() {
     () => appointments.length > 0,
     [appointments.length]
   )
+
+  const freeSlots = useMemo(() => {
+    const windows = appointments
+      .map((appointment) => {
+        const start = parseTimeToMinutes(appointment.startTime)
+        const end = parseTimeToMinutes(appointment.endTime)
+        if (start === null || end === null) {
+          return null
+        }
+        return { start, end }
+      })
+      .filter((value): value is { start: number; end: number } => Boolean(value))
+      .sort((a, b) => a.start - b.start)
+
+    const slots: string[] = []
+
+    for (
+      let minutes = DAY_START_MINUTES;
+      minutes <= DAY_END_MINUTES;
+      minutes += SLOT_INTERVAL_MINUTES
+    ) {
+      const slotEnd = minutes + SLOT_INTERVAL_MINUTES
+      if (slotEnd > DAY_END_MINUTES) {
+        break
+      }
+
+      const hasCollision = windows.some(
+        (window) => minutes < window.end && slotEnd > window.start
+      )
+      if (!hasCollision) {
+        slots.push(formatMinutes(minutes))
+      }
+    }
+
+    return slots
+  }, [appointments])
 
   const loadServicesAndClients = async () => {
     setFormLoading(true)
@@ -341,24 +409,51 @@ function Agenda() {
         {loading ? (
           <div className="text-slate-500">Carregando agendamentos...</div>
         ) : (
-          <div className="space-y-3">
-            {hasAppointments ? (
-              appointments.map((appointment) => (
-                <AppointmentCard
-                  key={appointment.id}
-                  startTime={appointment.startTime}
-                  endTime={appointment.endTime}
-                  serviceName={appointment.serviceName}
-                  clientName={appointment.clientName}
-                  onEdit={() => handleOpenEdit(appointment)}
-                  onCancel={() => handleDelete(appointment.id)}
-                />
-              ))
-            ) : (
-              <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-slate-500">
-                Nenhum agendamento para este dia
+          <div className="space-y-6">
+            <div className="space-y-3">
+              {hasAppointments ? (
+                appointments.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    startTime={appointment.startTime}
+                    endTime={appointment.endTime}
+                    serviceName={appointment.serviceName}
+                    clientName={appointment.clientName}
+                    onEdit={() => handleOpenEdit(appointment)}
+                    onCancel={() => handleDelete(appointment.id)}
+                  />
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-slate-500">
+                  Nenhum agendamento para este dia
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="text-sm font-medium text-slate-900">
+                Horários livres
               </div>
-            )}
+              <div className="text-xs text-slate-500 mt-1">
+                Intervalo exibido entre 08:00 e 18:00.
+              </div>
+              {freeSlots.length === 0 ? (
+                <div className="text-slate-500 mt-3">
+                  Nenhum horário livre disponível.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {freeSlots.map((slot) => (
+                    <span
+                      key={slot}
+                      className="px-3 py-1 rounded-md border border-slate-200 text-sm text-slate-700"
+                    >
+                      {slot}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -18,6 +18,7 @@ function Login() {
   const [showRecovery, setShowRecovery] = useState(false)
   const [recoveryEmail, setRecoveryEmail] = useState('')
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null)
+  const [showSignupInfo, setShowSignupInfo] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -125,13 +126,22 @@ function Login() {
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
-          <button
-            type="button"
-            className="w-full text-sm text-slate-500 hover:text-slate-700"
-            onClick={() => setShowRecovery(true)}
-          >
-            Esqueci minha senha
-          </button>
+          <div className="flex flex-col gap-2 text-sm text-slate-500">
+            <button
+              type="button"
+              className="w-full hover:text-slate-700"
+              onClick={() => setShowRecovery(true)}
+            >
+              Esqueci minha senha
+            </button>
+            <button
+              type="button"
+              className="w-full hover:text-slate-700"
+              onClick={() => setShowSignupInfo(true)}
+            >
+              Criar conta (cliente)
+            </button>
+          </div>
         </form>
       </div>
 
@@ -182,6 +192,28 @@ function Login() {
                 Fechar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showSignupInfo && (
+        <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">
+                Cadastro de cliente
+              </h2>
+              <p className="text-slate-500 mt-1">
+                O cadastro é realizado pelo profissional do salão. Solicite a criação da sua conta.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+              onClick={() => setShowSignupInfo(false)}
+            >
+              Fechar
+            </button>
           </div>
         </div>
       )}
