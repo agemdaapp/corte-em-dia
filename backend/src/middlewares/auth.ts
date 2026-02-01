@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 
 export async function authMiddleware(
   req: Request,
@@ -27,7 +27,7 @@ export async function authMiddleware(
   }
 
   // Perfil é obrigatório para liberar a request
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
     .select('id, email, role, name')
     .eq('id', data.user.id)
