@@ -215,6 +215,12 @@ export async function listAppointments(req: Request, res: Response) {
   const { data, error } = await query
 
   if (error) {
+    console.error('listAppointments error', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -262,6 +268,12 @@ export async function listMyAppointments(req: Request, res: Response) {
   const { data, error } = await query
 
   if (error) {
+    console.error('listMyAppointments error', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -315,6 +327,12 @@ export async function createAppointment(req: Request, res: Response) {
     .maybeSingle()
 
   if (serviceError) {
+    console.error('createAppointment service lookup error', {
+      code: serviceError.code,
+      message: serviceError.message,
+      details: serviceError.details,
+      hint: serviceError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -373,6 +391,12 @@ export async function createAppointment(req: Request, res: Response) {
     .order('start_time', { ascending: true })
 
   if (appointmentsError) {
+    console.error('createAppointment list error', {
+      code: appointmentsError.code,
+      message: appointmentsError.message,
+      details: appointmentsError.details,
+      hint: appointmentsError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -396,6 +420,12 @@ export async function createAppointment(req: Request, res: Response) {
     if (insertError.code === '23P01') {
       return res.status(409).json({ error: 'Conflito de horário' })
     }
+    console.error('createAppointment insert error', {
+      code: insertError.code,
+      message: insertError.message,
+      details: insertError.details,
+      hint: insertError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -416,6 +446,12 @@ export async function updateAppointment(req: Request, res: Response) {
     .maybeSingle()
 
   if (currentError) {
+    console.error('updateAppointment current lookup error', {
+      code: currentError.code,
+      message: currentError.message,
+      details: currentError.details,
+      hint: currentError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -476,6 +512,12 @@ export async function updateAppointment(req: Request, res: Response) {
     .maybeSingle()
 
   if (serviceError) {
+    console.error('updateAppointment service lookup error', {
+      code: serviceError.code,
+      message: serviceError.message,
+      details: serviceError.details,
+      hint: serviceError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -511,6 +553,12 @@ export async function updateAppointment(req: Request, res: Response) {
     .order('start_time', { ascending: true })
 
   if (appointmentsError) {
+    console.error('updateAppointment list error', {
+      code: appointmentsError.code,
+      message: appointmentsError.message,
+      details: appointmentsError.details,
+      hint: appointmentsError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -539,6 +587,12 @@ export async function updateAppointment(req: Request, res: Response) {
     .maybeSingle()
 
   if (updateError) {
+    console.error('updateAppointment update error', {
+      code: updateError.code,
+      message: updateError.message,
+      details: updateError.details,
+      hint: updateError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -559,6 +613,12 @@ export async function deleteAppointment(req: Request, res: Response) {
     .maybeSingle()
 
   if (appointmentError) {
+    console.error('deleteAppointment lookup error', {
+      code: appointmentError.code,
+      message: appointmentError.message,
+      details: appointmentError.details,
+      hint: appointmentError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -594,6 +654,12 @@ export async function deleteAppointment(req: Request, res: Response) {
     .eq('id', id)
 
   if (deleteError) {
+    console.error('deleteAppointment delete error', {
+      code: deleteError.code,
+      message: deleteError.message,
+      details: deleteError.details,
+      hint: deleteError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 

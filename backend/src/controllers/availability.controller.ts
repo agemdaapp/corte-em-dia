@@ -112,6 +112,12 @@ export async function getAvailability(req: Request, res: Response) {
     .maybeSingle()
 
   if (serviceError) {
+    console.error('getAvailability service lookup error', {
+      code: serviceError.code,
+      message: serviceError.message,
+      details: serviceError.details,
+      hint: serviceError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
@@ -141,6 +147,12 @@ export async function getAvailability(req: Request, res: Response) {
     .order('start_time', { ascending: true })
 
   if (appointmentsError) {
+    console.error('getAvailability list error', {
+      code: appointmentsError.code,
+      message: appointmentsError.message,
+      details: appointmentsError.details,
+      hint: appointmentsError.hint,
+    })
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
