@@ -5,6 +5,7 @@ import { supabaseAdmin } from '../lib/supabase'
 const DAY_START_MINUTES = 8 * 60
 const DAY_END_MINUTES = 18 * 60
 const SLOT_INTERVAL_MINUTES = 15
+const DEBUG_ERRORS = process.env.DEBUG_ERRORS === 'true'
 
 type AppointmentWindow = {
   startMinutes: number
@@ -93,6 +94,25 @@ function hasCollision(
   )
 }
 
+function respondWithError(
+  res: Response,
+  error: { code?: string | null; message?: string; details?: string | null; hint?: string | null }
+) {
+  if (DEBUG_ERRORS) {
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      debug: {
+        code: error.code ?? null,
+        message: error.message ?? null,
+        details: error.details ?? null,
+        hint: error.hint ?? null,
+      },
+    })
+  }
+
+  return res.status(500).json({ error: 'Internal Server Error' })
+}
+
 export async function getAvailability(req: Request, res: Response) {
   const serviceId = String(req.query.service_id ?? '')
   const date = String(req.query.date ?? '')
@@ -118,7 +138,7 @@ export async function getAvailability(req: Request, res: Response) {
       details: serviceError.details,
       hint: serviceError.hint,
     })
-    return res.status(500).json({ error: 'Internal Server Error' })
+    return respondWithError(res, serviceError)
   }
 
   if (!service) {
@@ -153,7 +173,7 @@ export async function getAvailability(req: Request, res: Response) {
       details: appointmentsError.details,
       hint: appointmentsError.hint,
     })
-    return res.status(500).json({ error: 'Internal Server Error' })
+    return respondWithError(res, appointmentsError)
   }
 
   const windows = buildAppointmentWindows(appointments ?? [])
