@@ -130,6 +130,10 @@ function buildAppointmentWindows(rows: Array<{
   start_time: string | null
   end_time: string | null
   duration_minutes?: number | null
+  service?:
+    | { duration_minutes?: number | null }
+    | { duration_minutes?: number | null }[]
+    | null
 }>) {
   const windows: AppointmentWindow[] = []
 
@@ -144,9 +148,15 @@ function buildAppointmentWindows(rows: Array<{
     }
 
     let endMinutes = row.end_time ? toUtcMinutes(row.end_time) : null
+    const serviceDurationFromJoin = Array.isArray(row.service)
+      ? row.service[0]?.duration_minutes
+      : row.service?.duration_minutes
+    const serviceDuration =
+      row.duration_minutes ??
+      (typeof serviceDurationFromJoin === 'number' ? serviceDurationFromJoin : null)
 
-    if (endMinutes === null && row.duration_minutes) {
-      endMinutes = startMinutes + row.duration_minutes
+    if (endMinutes === null && serviceDuration) {
+      endMinutes = startMinutes + serviceDuration
     }
 
     if (endMinutes === null) {
@@ -356,7 +366,7 @@ export async function createAppointment(req: Request, res: Response) {
 
   const { data: appointments, error: appointmentsError } = await supabaseAdmin
     .from('appointments')
-    .select('start_time, end_time, duration_minutes')
+    .select('start_time, end_time, service:services(duration_minutes)')
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
     .eq('professional_id', professionalId)
@@ -493,7 +503,7 @@ export async function updateAppointment(req: Request, res: Response) {
 
   const { data: appointments, error: appointmentsError } = await supabaseAdmin
     .from('appointments')
-    .select('id, start_time, end_time, duration_minutes')
+    .select('id, start_time, end_time, service:services(duration_minutes)')
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
     .neq('id', id)
