@@ -322,6 +322,13 @@ function Agenda() {
             >
               Clientes
             </button>
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+              onClick={() => navigate('/reports')}
+            >
+              Relatórios
+            </button>
           </div>
         </div>
 

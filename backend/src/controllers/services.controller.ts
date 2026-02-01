@@ -14,7 +14,10 @@ function ensureAuthenticated(
   return true
 }
 
-function ensureProfessional(req: Request, res: Response) {
+function ensureProfessional(
+  req: Request,
+  res: Response
+): req is Request & { user: NonNullable<Request['user']> } {
   if (!ensureAuthenticated(req, res)) {
     return false
   }
@@ -61,10 +64,23 @@ export async function listServices(req: Request, res: Response) {
     return
   }
 
-  const { data, error } = await supabase
+  const professionalId =
+    req.user.role === 'professional' ? req.user.id : String(req.query.professional_id ?? '')
+
+  if (req.user.role === 'client' && !professionalId) {
+    return res.status(400).json({ error: 'professional_id é obrigatório' })
+  }
+
+  let query = supabase
     .from('services')
     .select('*')
     .order('name', { ascending: true })
+
+  if (professionalId) {
+    query = query.eq('professional_id', professionalId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     return res.status(500).json({ error: 'Internal Server Error' })
@@ -102,6 +118,7 @@ export async function createService(req: Request, res: Response) {
       name,
       duration_minutes: durationMinutes,
       price: price ?? null,
+      professional_id: req.user.id,
     })
     .select('*')
     .maybeSingle()
@@ -169,6 +186,7 @@ export async function updateService(req: Request, res: Response) {
     .from('services')
     .update(updates)
     .eq('id', id)
+    .eq('professional_id', req.user.id)
     .select('*')
     .maybeSingle()
 
@@ -190,6 +208,7 @@ export async function deleteService(req: Request, res: Response) {
     .from('services')
     .delete()
     .eq('id', id)
+    .eq('professional_id', req.user.id)
     .select('*')
     .maybeSingle()
 

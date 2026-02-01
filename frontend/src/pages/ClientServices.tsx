@@ -10,6 +10,11 @@ type ServiceApi = {
   price?: number | null
 }
 
+type ProfessionalApi = {
+  id: string
+  name: string | null
+}
+
 function mapServices(payload: unknown): ServiceApi[] {
   const list = Array.isArray(payload)
     ? payload
@@ -28,18 +33,50 @@ function mapServices(payload: unknown): ServiceApi[] {
 function ClientServices() {
   const navigate = useNavigate()
   const [services, setServices] = useState<ServiceApi[]>([])
+  const [professionals, setProfessionals] = useState<ProfessionalApi[]>([])
+  const [selectedProfessional, setSelectedProfessional] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const hasServices = useMemo(() => services.length > 0, [services.length])
 
   useEffect(() => {
-    const loadServices = async () => {
+    const loadProfessionals = async () => {
       setLoading(true)
       setError(null)
 
       try {
-        const response = await api.get('/services')
+        const response = await api.get('/professionals')
+        const list = Array.isArray((response.data as { data?: unknown })?.data)
+          ? ((response.data as { data: ProfessionalApi[] }).data ?? [])
+          : []
+        setProfessionals(list)
+        if (list.length > 0) {
+          setSelectedProfessional(list[0].id)
+        }
+      } catch (requestError) {
+        setError('Não foi possível carregar os profissionais.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProfessionals()
+  }, [])
+
+  useEffect(() => {
+    const loadServices = async () => {
+      if (!selectedProfessional) {
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const response = await api.get('/services', {
+          params: { professional_id: selectedProfessional },
+        })
         setServices(mapServices(response.data))
       } catch (requestError) {
         setError('Não foi possível carregar os serviços.')
@@ -49,7 +86,7 @@ function ClientServices() {
     }
 
     loadServices()
-  }, [])
+  }, [selectedProfessional])
 
   const handleSelect = (serviceId: string) => {
     navigate(`/cliente/agendar?service=${serviceId}`)
@@ -67,6 +104,26 @@ function ClientServices() {
           </p>
         </div>
 
+        {professionals.length > 0 && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-2">
+            <label className="text-sm font-medium text-slate-700" htmlFor="professional">
+              Profissional
+            </label>
+            <select
+              id="professional"
+              className="w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900"
+              value={selectedProfessional}
+              onChange={(event) => setSelectedProfessional(event.target.value)}
+            >
+              {professionals.map((professional) => (
+                <option key={professional.id} value={professional.id}>
+                  {professional.name ?? 'Profissional'}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-600 text-sm">
             {error}
@@ -75,7 +132,7 @@ function ClientServices() {
 
         {loading && <div className="text-slate-500">Carregando serviços...</div>}
 
-        {!loading && !hasServices && (
+        {!loading && selectedProfessional && !hasServices && (
           <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-slate-500">
             Nenhum serviço disponível no momento.
           </div>

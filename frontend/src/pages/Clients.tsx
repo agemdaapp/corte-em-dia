@@ -188,6 +188,12 @@ function Clients() {
             >
               Serviços
             </Link>
+            <Link
+              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+              to="/reports"
+            >
+              Relatórios
+            </Link>
           </div>
         </div>
 

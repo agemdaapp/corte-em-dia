@@ -2,6 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../services/api'
+import {
+  isNotificationsEnabled,
+  notifyUpcomingAppointments,
+  requestNotificationPermission,
+  setNotificationsEnabled,
+} from '../services/notifications'
 
 type AppointmentApi = {
   id: string
@@ -70,6 +76,9 @@ function MyAppointments() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(
+    isNotificationsEnabled()
+  )
 
   const hasAppointments = useMemo(
     () => appointments.length > 0,
@@ -93,6 +102,18 @@ function MyAppointments() {
   useEffect(() => {
     loadAppointments()
   }, [])
+
+  useEffect(() => {
+    if (notificationsEnabled) {
+      notifyUpcomingAppointments(
+        appointments.map((appointment) => ({
+          id: appointment.id,
+          startTime: appointment.startTime ?? null,
+          serviceName: appointment.serviceName,
+        }))
+      )
+    }
+  }, [appointments, notificationsEnabled])
 
   const handleCancel = async (appointmentId: string) => {
     setError(null)
@@ -139,6 +160,36 @@ function MyAppointments() {
             onClick={() => navigate('/cliente/servicos')}
           >
             Novo agendamento
+          </button>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-medium text-slate-900">
+              Lembretes de agendamento
+            </div>
+            <div className="text-sm text-slate-500">
+              Ative notificações para receber alertas próximos ao horário.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+            onClick={async () => {
+              if (!notificationsEnabled) {
+                const permission = await requestNotificationPermission()
+                if (permission !== 'granted') {
+                  setError('Permissão de notificação negada.')
+                  return
+                }
+              }
+
+              const nextState = !notificationsEnabled
+              setNotificationsEnabled(nextState)
+              setNotificationsEnabledState(nextState)
+            }}
+          >
+            {notificationsEnabled ? 'Desativar lembretes' : 'Ativar lembretes'}
           </button>
         </div>
 

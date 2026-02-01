@@ -22,7 +22,10 @@ function ensureAuthenticated(
   return true
 }
 
-function ensureProfessional(req: Request, res: Response) {
+function ensureProfessional(
+  req: Request,
+  res: Response
+): req is Request & { user: NonNullable<Request['user']> } {
   if (!ensureAuthenticated(req, res)) {
     return false
   }
@@ -187,7 +190,7 @@ export async function listAppointments(req: Request, res: Response) {
   let query = supabase
     .from('appointments')
     .select(
-      'id, start_time, end_time, service_id, client_id, service:services(name, duration_minutes), client:profiles(name)'
+      'id, start_time, end_time, service_id, client_id, professional_id, service:services(name, duration_minutes), client:profiles(name)'
     )
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
@@ -195,6 +198,8 @@ export async function listAppointments(req: Request, res: Response) {
 
   if (req.user.role === 'client') {
     query = query.eq('client_id', req.user.id)
+  } else {
+    query = query.eq('professional_id', req.user.id)
   }
 
   const { data, error } = await query
@@ -295,7 +300,7 @@ export async function createAppointment(req: Request, res: Response) {
 
   const { data: service, error: serviceError } = await supabase
     .from('services')
-    .select('id, duration_minutes')
+    .select('id, duration_minutes, professional_id')
     .eq('id', serviceId)
     .maybeSingle()
 
@@ -305,6 +310,10 @@ export async function createAppointment(req: Request, res: Response) {
 
   if (!service) {
     return res.status(404).json({ error: 'Service not found' })
+  }
+
+  if (service.professional_id && service.professional_id !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' })
   }
 
   const durationMinutes = service.duration_minutes
@@ -318,8 +327,10 @@ export async function createAppointment(req: Request, res: Response) {
   }
 
   let clientId = req.user.id
+  let professionalId = service.professional_id ?? null
 
   if (req.user.role === 'professional') {
+    professionalId = req.user.id
     if (req.body?.client_id) {
       const requestedClientId = String(req.body.client_id)
       if (!isValidUuid(requestedClientId)) {
@@ -331,6 +342,10 @@ export async function createAppointment(req: Request, res: Response) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
+  if (!professionalId) {
+    return res.status(400).json({ error: 'Invalid professional_id' })
+  }
+
   const startDateTime = `${date}T${startTime}:00.000Z`
   const startOfDay = `${date}T00:00:00.000Z`
   const endOfDay = `${date}T23:59:59.999Z`
@@ -340,6 +355,7 @@ export async function createAppointment(req: Request, res: Response) {
     .select('start_time, end_time, duration_minutes')
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
+    .eq('professional_id', professionalId)
     .order('start_time', { ascending: true })
 
   if (appointmentsError) {
@@ -356,6 +372,7 @@ export async function createAppointment(req: Request, res: Response) {
     .insert({
       service_id: serviceId,
       client_id: clientId,
+      professional_id: professionalId,
       start_time: startDateTime,
     })
     .select('*')
@@ -380,7 +397,7 @@ export async function updateAppointment(req: Request, res: Response) {
 
   const { data: current, error: currentError } = await supabase
     .from('appointments')
-    .select('id, start_time, service_id, client_id')
+    .select('id, start_time, service_id, client_id, professional_id')
     .eq('id', id)
     .maybeSingle()
 
@@ -388,7 +405,7 @@ export async function updateAppointment(req: Request, res: Response) {
     return res.status(500).json({ error: 'Internal Server Error' })
   }
 
-  if (!current) {
+  if (!current || current.professional_id !== req.user.id) {
     return res.status(404).json({ error: 'Appointment not found' })
   }
 
@@ -440,7 +457,7 @@ export async function updateAppointment(req: Request, res: Response) {
 
   const { data: service, error: serviceError } = await supabase
     .from('services')
-    .select('id, duration_minutes')
+    .select('id, duration_minutes, professional_id')
     .eq('id', serviceId)
     .maybeSingle()
 
@@ -472,6 +489,7 @@ export async function updateAppointment(req: Request, res: Response) {
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
     .neq('id', id)
+    .eq('professional_id', req.user.id)
     .order('start_time', { ascending: true })
 
   if (appointmentsError) {
@@ -487,10 +505,12 @@ export async function updateAppointment(req: Request, res: Response) {
     service_id: string
     client_id: string
     start_time: string
+    professional_id: string
   } = {
     service_id: serviceId,
     client_id: providedClientId ?? current.client_id,
     start_time: startDateTime,
+    professional_id: req.user.id,
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -516,7 +536,7 @@ export async function deleteAppointment(req: Request, res: Response) {
 
   const { data: appointment, error: appointmentError } = await supabase
     .from('appointments')
-    .select('id, client_id, start_time')
+    .select('id, client_id, start_time, professional_id')
     .eq('id', id)
     .maybeSingle()
 
@@ -545,6 +565,8 @@ export async function deleteAppointment(req: Request, res: Response) {
       return res.status(403).json({ error: 'Cancelamento não permitido' })
     }
   } else if (req.user.role !== 'professional') {
+    return res.status(403).json({ error: 'Forbidden' })
+  } else if (appointment.professional_id !== req.user.id) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 

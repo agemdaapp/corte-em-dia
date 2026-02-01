@@ -2,7 +2,10 @@ import type { Request, Response } from 'express'
 
 import { supabaseAdmin } from '../lib/supabase'
 
-function ensureProfessional(req: Request, res: Response) {
+function ensureProfessional(
+  req: Request,
+  res: Response
+): req is Request & { user: NonNullable<Request['user']> } {
   if (!req.user) {
     res.status(401).json({ error: 'Unauthorized' })
     return false
@@ -73,6 +76,7 @@ export async function listClients(req: Request, res: Response) {
     .from('profiles')
     .select('id, name, email, phone')
     .eq('role', 'client')
+    .eq('professional_id', req.user.id)
     .order('name', { ascending: true })
 
   if (error) {
@@ -119,6 +123,7 @@ export async function createClient(req: Request, res: Response) {
       name,
       phone,
       role: 'client',
+      professional_id: req.user.id,
     })
     .select('id, name, email, phone')
     .maybeSingle()
@@ -196,6 +201,24 @@ export async function updateClient(req: Request, res: Response) {
     })
   }
 
+  const { data: currentProfile, error: currentError } = await supabaseAdmin
+    .from('profiles')
+    .select('id, role, professional_id')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (currentError) {
+    return res.status(500).json({ error: 'Internal Server Error' })
+  }
+
+  if (
+    !currentProfile ||
+    currentProfile.role !== 'client' ||
+    currentProfile.professional_id !== req.user.id
+  ) {
+    return res.status(404).json({ error: 'Client not found' })
+  }
+
   if (email || password) {
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
       id,
@@ -216,6 +239,7 @@ export async function updateClient(req: Request, res: Response) {
       .from('profiles')
       .update(updates)
       .eq('id', id)
+      .eq('professional_id', req.user.id)
       .select('id, name, email, phone')
       .maybeSingle()
 
@@ -243,6 +267,7 @@ export async function deleteClient(req: Request, res: Response) {
     .from('profiles')
     .delete()
     .eq('id', id)
+    .eq('professional_id', req.user.id)
 
   if (profileError) {
     return res.status(500).json({ error: 'Internal Server Error' })

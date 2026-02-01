@@ -21,6 +21,15 @@ export function getSession() {
   return supabase.auth.getSession()
 }
 
+export function resetPassword(email: string) {
+  const redirectTo = `${window.location.origin}/reset-password`
+  return supabase.auth.resetPasswordForEmail(email, { redirectTo })
+}
+
+export function updatePassword(password: string) {
+  return supabase.auth.updateUser({ password })
+}
+
 export async function ensureProfile() {
   const { data: userData, error: userError } = await supabase.auth.getUser()
 

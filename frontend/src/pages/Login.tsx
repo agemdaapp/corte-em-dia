@@ -1,7 +1,13 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { ensureProfile, getProfile, getSession, signIn } from '../services/auth'
+import {
+  ensureProfile,
+  getProfile,
+  getSession,
+  resetPassword,
+  signIn,
+} from '../services/auth'
 
 function Login() {
   const navigate = useNavigate()
@@ -9,6 +15,9 @@ function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showRecovery, setShowRecovery] = useState(false)
+  const [recoveryEmail, setRecoveryEmail] = useState('')
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -56,6 +65,22 @@ function Login() {
     })
   }
 
+  const handleRecovery = async () => {
+    setRecoveryMessage(null)
+    if (!recoveryEmail) {
+      setRecoveryMessage('Informe um email válido.')
+      return
+    }
+
+    const { error: recoveryError } = await resetPassword(recoveryEmail)
+    if (recoveryError) {
+      setRecoveryMessage('Não foi possível enviar o email de recuperação.')
+      return
+    }
+
+    setRecoveryMessage('Link de recuperação enviado para seu email.')
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white shadow-sm rounded-xl p-8">
@@ -100,8 +125,66 @@ function Login() {
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
+          <button
+            type="button"
+            className="w-full text-sm text-slate-500 hover:text-slate-700"
+            onClick={() => setShowRecovery(true)}
+          >
+            Esqueci minha senha
+          </button>
         </form>
       </div>
+
+      {showRecovery && (
+        <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">
+                Recuperação de senha
+              </h2>
+              <p className="text-slate-500 mt-1">
+                Enviaremos um link para redefinir sua senha.
+              </p>
+            </div>
+
+            {recoveryMessage && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 text-sm">
+                {recoveryMessage}
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium text-slate-700" htmlFor="recovery-email">
+                Email
+              </label>
+              <input
+                id="recovery-email"
+                type="email"
+                className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900"
+                value={recoveryEmail}
+                onChange={(event) => setRecoveryEmail(event.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
+                onClick={handleRecovery}
+              >
+                Enviar link
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+                onClick={() => setShowRecovery(false)}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

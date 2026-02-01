@@ -5,6 +5,8 @@ import cors from 'cors'
 import availabilityRoutes from './routes/availability.routes'
 import appointmentsRoutes from './routes/appointments.routes'
 import clientsRoutes from './routes/clients.routes'
+import professionalsRoutes from './routes/professionals.routes'
+import reportsRoutes from './routes/reports.routes'
 import servicesRoutes from './routes/services.routes'
 import { supabase } from './lib/supabase'
 
@@ -39,6 +41,8 @@ app.get('/health', async (_req, res) => {
 app.use('/availability', availabilityRoutes)
 app.use('/appointments', appointmentsRoutes)
 app.use('/clients', clientsRoutes)
+app.use('/professionals', professionalsRoutes)
+app.use('/reports', reportsRoutes)
 app.use('/services', servicesRoutes)
 
 export default app

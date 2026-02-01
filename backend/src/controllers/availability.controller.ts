@@ -97,7 +97,7 @@ export async function getAvailability(req: Request, res: Response) {
 
   const { data: service, error: serviceError } = await supabase
     .from('services')
-    .select('id, duration_minutes')
+    .select('id, duration_minutes, professional_id')
     .eq('id', serviceId)
     .maybeSingle()
 
@@ -117,11 +117,17 @@ export async function getAvailability(req: Request, res: Response) {
   const startOfDay = `${date}T00:00:00.000Z`
   const endOfDay = `${date}T23:59:59.999Z`
 
+  const professionalId = service.professional_id
+  if (!professionalId) {
+    return res.status(400).json({ error: 'Invalid professional_id' })
+  }
+
   const { data: appointments, error: appointmentsError } = await supabase
     .from('appointments')
     .select('start_time, end_time, duration_minutes')
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
+    .eq('professional_id', professionalId)
     .order('start_time', { ascending: true })
 
   if (appointmentsError) {

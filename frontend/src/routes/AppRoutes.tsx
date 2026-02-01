@@ -7,6 +7,8 @@ import ClientSchedule from '../pages/ClientSchedule'
 import ClientServices from '../pages/ClientServices'
 import Login from '../pages/Login'
 import MyAppointments from '../pages/MyAppointments'
+import Reports from '../pages/Reports'
+import ResetPassword from '../pages/ResetPassword'
 import Services from '../pages/Services'
 import { ensureProfile, getProfile, getSession } from '../services/auth'
 
@@ -135,6 +137,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<RoleRedirect />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/agenda"
         element={
@@ -156,6 +159,14 @@ function AppRoutes() {
         element={
           <RequireAuth role="professional">
             <Clients />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <RequireAuth role="professional">
+            <Reports />
           </RequireAuth>
         }
       />
