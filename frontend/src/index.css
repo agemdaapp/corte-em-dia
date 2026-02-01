@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
