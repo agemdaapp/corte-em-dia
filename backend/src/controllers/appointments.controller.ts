@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import { supabase } from '../lib/supabase'
+import { supabaseAdmin } from '../lib/supabase'
 
 const DAY_START_MINUTES = 8 * 60
 const DAY_END_MINUTES = 18 * 60
@@ -187,7 +187,7 @@ export async function listAppointments(req: Request, res: Response) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('appointments')
     .select(
       'id, start_time, end_time, service_id, client_id, professional_id, service:services(name, duration_minutes), client:profiles(name)'
@@ -237,7 +237,7 @@ export async function listMyAppointments(req: Request, res: Response) {
   const includePast = String(req.query.include_past ?? '') === 'true'
   const now = new Date().toISOString()
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('appointments')
     .select(
       'id, start_time, end_time, service:services(name, duration_minutes)'
@@ -298,7 +298,7 @@ export async function createAppointment(req: Request, res: Response) {
     return res.status(400).json({ error: 'start_time fora do horário permitido' })
   }
 
-  const { data: service, error: serviceError } = await supabase
+  const { data: service, error: serviceError } = await supabaseAdmin
     .from('services')
     .select('id, duration_minutes, professional_id')
     .eq('id', serviceId)
@@ -354,7 +354,7 @@ export async function createAppointment(req: Request, res: Response) {
   const startOfDay = `${date}T00:00:00.000Z`
   const endOfDay = `${date}T23:59:59.999Z`
 
-  const { data: appointments, error: appointmentsError } = await supabase
+  const { data: appointments, error: appointmentsError } = await supabaseAdmin
     .from('appointments')
     .select('start_time, end_time, duration_minutes')
     .gte('start_time', startOfDay)
@@ -371,7 +371,7 @@ export async function createAppointment(req: Request, res: Response) {
     return res.status(409).json({ error: 'Conflito de horário' })
   }
 
-  const { data: created, error: insertError } = await supabase
+  const { data: created, error: insertError } = await supabaseAdmin
     .from('appointments')
     .insert({
       service_id: serviceId,
@@ -399,7 +399,7 @@ export async function updateAppointment(req: Request, res: Response) {
 
   const { id } = req.params
 
-  const { data: current, error: currentError } = await supabase
+  const { data: current, error: currentError } = await supabaseAdmin
     .from('appointments')
     .select('id, start_time, service_id, client_id, professional_id')
     .eq('id', id)
@@ -459,7 +459,7 @@ export async function updateAppointment(req: Request, res: Response) {
     return res.status(400).json({ error: 'Invalid service_id' })
   }
 
-  const { data: service, error: serviceError } = await supabase
+  const { data: service, error: serviceError } = await supabaseAdmin
     .from('services')
     .select('id, duration_minutes, professional_id')
     .eq('id', serviceId)
@@ -491,7 +491,7 @@ export async function updateAppointment(req: Request, res: Response) {
   const startOfDay = `${date}T00:00:00.000Z`
   const endOfDay = `${date}T23:59:59.999Z`
 
-  const { data: appointments, error: appointmentsError } = await supabase
+  const { data: appointments, error: appointmentsError } = await supabaseAdmin
     .from('appointments')
     .select('id, start_time, end_time, duration_minutes')
     .gte('start_time', startOfDay)
@@ -521,7 +521,7 @@ export async function updateAppointment(req: Request, res: Response) {
     professional_id: req.user.id,
   }
 
-  const { data: updated, error: updateError } = await supabase
+  const { data: updated, error: updateError } = await supabaseAdmin
     .from('appointments')
     .update(updates)
     .eq('id', id)
@@ -542,7 +542,7 @@ export async function deleteAppointment(req: Request, res: Response) {
 
   const { id } = req.params
 
-  const { data: appointment, error: appointmentError } = await supabase
+  const { data: appointment, error: appointmentError } = await supabaseAdmin
     .from('appointments')
     .select('id, client_id, start_time, professional_id')
     .eq('id', id)
@@ -578,7 +578,7 @@ export async function deleteAppointment(req: Request, res: Response) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await supabaseAdmin
     .from('appointments')
     .delete()
     .eq('id', id)

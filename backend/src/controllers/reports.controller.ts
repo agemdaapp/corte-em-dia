@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import { supabase } from '../lib/supabase'
+import { supabaseAdmin } from '../lib/supabase'
 
 function ensureProfessional(
   req: Request,
@@ -59,7 +59,7 @@ export async function getSummaryReport(req: Request, res: Response) {
   const startOfDay = `${startDate}T00:00:00.000Z`
   const endOfDay = `${endDate}T23:59:59.999Z`
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('appointments')
     .select('id, start_time, end_time, service:services(name, duration_minutes)')
     .eq('professional_id', req.user.id)

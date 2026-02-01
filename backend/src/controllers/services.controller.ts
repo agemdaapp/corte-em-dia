@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import { supabase } from '../lib/supabase'
+import { supabaseAdmin } from '../lib/supabase'
 
 function ensureAuthenticated(
   req: Request,
@@ -71,7 +71,7 @@ export async function listServices(req: Request, res: Response) {
     return res.status(400).json({ error: 'professional_id é obrigatório' })
   }
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('services')
     .select('*')
     .order('name', { ascending: true })
@@ -112,7 +112,7 @@ export async function createService(req: Request, res: Response) {
     })
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('services')
     .insert({
       name,
@@ -182,7 +182,7 @@ export async function updateService(req: Request, res: Response) {
     })
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('services')
     .update(updates)
     .eq('id', id)
@@ -204,7 +204,7 @@ export async function deleteService(req: Request, res: Response) {
 
   const { id } = req.params
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('services')
     .delete()
     .eq('id', id)

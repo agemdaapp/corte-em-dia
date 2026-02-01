@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import { supabase } from '../lib/supabase'
+import { supabaseAdmin } from '../lib/supabase'
 
 const DAY_START_MINUTES = 8 * 60
 const DAY_END_MINUTES = 18 * 60
@@ -95,7 +95,7 @@ export async function getAvailability(req: Request, res: Response) {
     return res.status(400).json({ error: 'Invalid date' })
   }
 
-  const { data: service, error: serviceError } = await supabase
+  const { data: service, error: serviceError } = await supabaseAdmin
     .from('services')
     .select('id, duration_minutes, professional_id')
     .eq('id', serviceId)
@@ -122,7 +122,7 @@ export async function getAvailability(req: Request, res: Response) {
     return res.status(400).json({ error: 'Invalid professional_id' })
   }
 
-  const { data: appointments, error: appointmentsError } = await supabase
+  const { data: appointments, error: appointmentsError } = await supabaseAdmin
     .from('appointments')
     .select('start_time, end_time, duration_minutes')
     .gte('start_time', startOfDay)
