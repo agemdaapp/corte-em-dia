@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import api from '../services/api'
+import TopNav from '../components/TopNav'
 
 type ServiceApi = {
   id: string
@@ -131,24 +132,40 @@ function ClientSchedule() {
 
   if (!serviceId) {
     return (
-      <div className="min-h-screen bg-slate-100 px-6 py-8">
-        <div className="max-w-3xl mx-auto rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
-          Serviço inválido. Retorne para escolher um serviço.
-          <button
-            type="button"
-            className="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
-            onClick={() => navigate('/cliente/servicos')}
-          >
-            Voltar para serviços
-          </button>
+      <div className="min-h-screen bg-slate-100">
+        <TopNav
+          title="Agendamentos"
+          items={[
+            { label: 'Serviços', to: '/cliente/servicos' },
+            { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+          ]}
+        />
+        <div className="max-w-3xl mx-auto px-6 py-8">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
+            Serviço inválido. Retorne para escolher um serviço.
+            <button
+              type="button"
+              className="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
+              onClick={() => navigate('/cliente/servicos')}
+            >
+              Voltar para serviços
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        title="Agendamentos"
+        items={[
+          { label: 'Serviços', to: '/cliente/servicos' },
+          { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+        ]}
+      />
+      <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
             Seleção de Data e Horário
@@ -174,7 +191,7 @@ function ClientSchedule() {
           <div className="flex flex-col gap-2">
             <span className="text-sm text-slate-500">Serviço selecionado</span>
             {loadingServices ? (
-              <div className="text-slate-500">Carregando serviço...</div>
+              <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
             ) : (
               <div className="text-lg font-semibold text-slate-900">
                 {selectedService?.name ?? 'Serviço'}
@@ -202,7 +219,14 @@ function ClientSchedule() {
                 Horários disponíveis
               </div>
               {loadingTimes ? (
-                <div className="text-slate-500">Carregando horários...</div>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={`skeleton-${index}`}
+                      className="h-8 w-16 rounded-md bg-slate-200 animate-pulse"
+                    />
+                  ))}
+                </div>
               ) : availableTimes.length === 0 ? (
                 <div className="text-slate-500">
                   Nenhum horário disponível para esta data.

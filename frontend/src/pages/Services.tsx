@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import ServiceCard from '../components/ServiceCard'
 import ServiceForm, { ServiceFormValues } from '../components/ServiceForm'
+import TopNav from '../components/TopNav'
 import api from '../services/api'
 
 type ServiceApi = {
@@ -128,8 +129,16 @@ function Services() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        items={[
+          { label: 'Agenda', to: '/agenda' },
+          { label: 'Serviços', to: '/services' },
+          { label: 'Clientes', to: '/clients' },
+          { label: 'Relatórios', to: '/reports' },
+        ]}
+      />
+      <div className="max-w-5xl mx-auto space-y-6 px-6 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Serviços</h1>
@@ -150,19 +159,7 @@ function Services() {
               className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
               to="/agenda"
             >
-              Agenda
-            </Link>
-            <Link
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              to="/clients"
-            >
-              Clientes
-            </Link>
-            <Link
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              to="/reports"
-            >
-              Relatórios
+              Voltar
             </Link>
           </div>
         </div>
@@ -180,7 +177,18 @@ function Services() {
         )}
 
         {loading && !isFormOpen && (
-          <div className="text-slate-500">Carregando serviços...</div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm animate-pulse space-y-2"
+              >
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                <div className="h-3 bg-slate-200 rounded w-1/3" />
+                <div className="h-3 bg-slate-200 rounded w-1/4" />
+              </div>
+            ))}
+          </div>
         )}
 
         {!loading && !hasServices && (

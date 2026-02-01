@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import api from '../services/api'
+import TopNav from '../components/TopNav'
 
 type ReportResponse = {
   start_date: string
@@ -56,8 +57,16 @@ function Reports() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        items={[
+          { label: 'Agenda', to: '/agenda' },
+          { label: 'Serviços', to: '/services' },
+          { label: 'Clientes', to: '/clients' },
+          { label: 'Relatórios', to: '/reports' },
+        ]}
+      />
+      <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Relatórios</h1>
           <p className="text-slate-500 mt-1">

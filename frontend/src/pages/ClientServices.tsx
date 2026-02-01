@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../services/api'
+import TopNav from '../components/TopNav'
 
 type ServiceApi = {
   id: string
@@ -93,8 +94,15 @@ function ClientServices() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        title="Agendamentos"
+        items={[
+          { label: 'Serviços', to: '/cliente/servicos' },
+          { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+        ]}
+      />
+      <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
             Escolha de Serviço
@@ -130,7 +138,20 @@ function ClientServices() {
           </div>
         )}
 
-        {loading && <div className="text-slate-500">Carregando serviços...</div>}
+        {loading && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm animate-pulse space-y-2"
+              >
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                <div className="h-3 bg-slate-200 rounded w-1/3" />
+                <div className="h-3 bg-slate-200 rounded w-1/4" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {!loading && selectedProfessional && !hasServices && (
           <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-slate-500">

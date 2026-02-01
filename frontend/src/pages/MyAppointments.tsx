@@ -8,6 +8,7 @@ import {
   requestNotificationPermission,
   setNotificationsEnabled,
 } from '../services/notifications'
+import TopNav from '../components/TopNav'
 
 type AppointmentApi = {
   id: string
@@ -140,8 +141,15 @@ function MyAppointments() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        title="Agendamentos"
+        items={[
+          { label: 'Serviços', to: '/cliente/servicos' },
+          { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+        ]}
+      />
+      <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">
@@ -206,7 +214,18 @@ function MyAppointments() {
         )}
 
         {loading && (
-          <div className="text-slate-500">Carregando agendamentos...</div>
+          <div className="grid gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm animate-pulse space-y-2"
+              >
+                <div className="h-4 bg-slate-200 rounded w-1/3" />
+                <div className="h-3 bg-slate-200 rounded w-1/2" />
+                <div className="h-3 bg-slate-200 rounded w-1/4" />
+              </div>
+            ))}
+          </div>
         )}
 
         {!loading && !hasAppointments && (

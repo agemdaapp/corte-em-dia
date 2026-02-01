@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import api from '../services/api'
+import TopNav from '../components/TopNav'
 
 type ClientApi = {
   id: string
@@ -16,6 +17,17 @@ type ClientFormValues = {
   email: string
   phone: string
   password: string
+}
+
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 2) {
+    return digits
+  }
+  if (digits.length <= 7) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
 }
 
 function mapClients(payload: unknown): ClientApi[] {
@@ -38,6 +50,7 @@ function Clients() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<ClientApi | null>(null)
   const [formValues, setFormValues] = useState<ClientFormValues>({
@@ -72,6 +85,7 @@ function Clients() {
     setFormValues({ name: '', email: '', phone: '', password: '' })
     setIsFormOpen(true)
     setFeedback(null)
+    setFormError(null)
   }
 
   const handleOpenEdit = (client: ClientApi) => {
@@ -85,6 +99,7 @@ function Clients() {
     })
     setIsFormOpen(true)
     setFeedback(null)
+    setFormError(null)
   }
 
   const handleCloseForm = () => {
@@ -94,12 +109,29 @@ function Clients() {
   }
 
   const handleChange = (field: keyof ClientFormValues, value: string) => {
+    if (field === 'phone') {
+      setFormValues((prev) => ({ ...prev, [field]: formatPhone(value) }))
+      return
+    }
     setFormValues((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = async () => {
     setLoading(true)
     setError(null)
+    setFormError(null)
+
+    if (!formValues.name.trim() || !formValues.email.trim()) {
+      setLoading(false)
+      setFormError('Nome e email são obrigatórios.')
+      return
+    }
+
+    if (!editingClient && formValues.password.trim().length < 6) {
+      setLoading(false)
+      setFormError('A senha inicial deve ter pelo menos 6 caracteres.')
+      return
+    }
 
     try {
       if (editingClient) {
@@ -158,8 +190,16 @@ function Clients() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        items={[
+          { label: 'Agenda', to: '/agenda' },
+          { label: 'Serviços', to: '/services' },
+          { label: 'Clientes', to: '/clients' },
+          { label: 'Relatórios', to: '/reports' },
+        ]}
+      />
+      <div className="max-w-5xl mx-auto space-y-6 px-6 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Clientes</h1>
@@ -180,19 +220,7 @@ function Clients() {
               className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
               to="/agenda"
             >
-              Agenda
-            </Link>
-            <Link
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              to="/services"
-            >
-              Serviços
-            </Link>
-            <Link
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              to="/reports"
-            >
-              Relatórios
+              Voltar
             </Link>
           </div>
         </div>
@@ -210,7 +238,18 @@ function Clients() {
         )}
 
         {loading && !isFormOpen && (
-          <div className="text-slate-500">Carregando clientes...</div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm animate-pulse space-y-2"
+              >
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                <div className="h-3 bg-slate-200 rounded w-2/3" />
+                <div className="h-3 bg-slate-200 rounded w-1/3" />
+              </div>
+            ))}
+          </div>
         )}
 
         {!loading && !hasClients && (
@@ -266,6 +305,12 @@ function Clients() {
               {editingClient ? 'Editar cliente' : 'Novo cliente'}
             </h2>
 
+            {formError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-600 text-sm">
+                {formError}
+              </div>
+            )}
+
             <div className="space-y-3">
               <div>
                 <label className="text-sm font-medium text-slate-700" htmlFor="name">
@@ -274,7 +319,7 @@ function Clients() {
                 <input
                   id="name"
                   type="text"
-                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900"
+                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                   value={formValues.name}
                   onChange={(event) => handleChange('name', event.target.value)}
                   required
@@ -288,7 +333,7 @@ function Clients() {
                 <input
                   id="email"
                   type="email"
-                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900"
+                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                   value={formValues.email}
                   onChange={(event) => handleChange('email', event.target.value)}
                   required
@@ -302,9 +347,10 @@ function Clients() {
                 <input
                   id="phone"
                   type="text"
-                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900"
+                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                   value={formValues.phone}
                   onChange={(event) => handleChange('phone', event.target.value)}
+                  inputMode="numeric"
                 />
               </div>
 
@@ -318,7 +364,7 @@ function Clients() {
                 <input
                   id="password"
                   type="password"
-                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900"
+                  className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                   value={formValues.password}
                   onChange={(event) => handleChange('password', event.target.value)}
                   required={!editingClient}

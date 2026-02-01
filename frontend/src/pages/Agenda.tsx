@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import AppointmentCard from '../components/AppointmentCard'
 import DayNavigator from '../components/DayNavigator'
+import TopNav from '../components/TopNav'
 import api from '../services/api'
 
 type AppointmentApi = {
@@ -152,13 +152,13 @@ function mapAppointments(payload: unknown): AppointmentView[] {
 }
 
 function Agenda() {
-  const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState(getToday)
   const [loading, setLoading] = useState(false)
   const [appointments, setAppointments] = useState<AppointmentView[]>([])
   const [formOpen, setFormOpen] = useState(false)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
   const [formError, setFormError] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<string | null>(null)
   const [formLoading, setFormLoading] = useState(false)
   const [formValues, setFormValues] = useState<AppointmentFormState>({
     serviceId: '',
@@ -282,6 +282,8 @@ function Agenda() {
       startTime: '',
     })
     setFormOpen(true)
+    setFormError(null)
+    setFeedback(null)
     await loadServicesAndClients()
   }
 
@@ -296,6 +298,8 @@ function Agenda() {
       startTime: parts?.time ?? '',
     })
     setFormOpen(true)
+    setFormError(null)
+    setFeedback(null)
     await loadServicesAndClients()
   }
 
@@ -313,6 +317,13 @@ function Agenda() {
   const handleSubmit = async () => {
     setFormLoading(true)
     setFormError(null)
+    setFeedback(null)
+
+    if (!formValues.serviceId || !formValues.clientId || !formValues.startTime) {
+      setFormLoading(false)
+      setFormError('Preencha serviço, cliente e horário.')
+      return
+    }
 
     try {
       if (formMode === 'create') {
@@ -322,6 +333,7 @@ function Agenda() {
           date: formValues.date,
           start_time: formValues.startTime,
         })
+        setFeedback('Agendamento criado com sucesso.')
       } else if (editingId) {
         await api.put(`/appointments/${editingId}`, {
           service_id: formValues.serviceId,
@@ -329,6 +341,7 @@ function Agenda() {
           date: formValues.date,
           start_time: formValues.startTime,
         })
+        setFeedback('Agendamento atualizado com sucesso.')
       }
 
       setFormOpen(false)
@@ -352,6 +365,7 @@ function Agenda() {
 
     try {
       await api.delete(`/appointments/${appointmentId}`)
+      setFeedback('Agendamento cancelado com sucesso.')
       await loadAppointments()
     } catch (error) {
       setFormError('Não foi possível cancelar o agendamento.')
@@ -359,8 +373,16 @@ function Agenda() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-6 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <TopNav
+        items={[
+          { label: 'Agenda', to: '/agenda' },
+          { label: 'Serviços', to: '/services' },
+          { label: 'Clientes', to: '/clients' },
+          { label: 'Relatórios', to: '/reports' },
+        ]}
+      />
+      <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Agenda do Dia</h1>
@@ -376,29 +398,14 @@ function Agenda() {
             >
               Novo agendamento
             </button>
-            <button
-              type="button"
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              onClick={() => navigate('/services')}
-            >
-              Serviços
-            </button>
-            <button
-              type="button"
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              onClick={() => navigate('/clients')}
-            >
-              Clientes
-            </button>
-            <button
-              type="button"
-              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-              onClick={() => navigate('/reports')}
-            >
-              Relatórios
-            </button>
           </div>
         </div>
+
+        {feedback && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-700 text-sm">
+            {feedback}
+          </div>
+        )}
 
         <DayNavigator
           selectedDate={selectedDate}
@@ -407,7 +414,18 @@ function Agenda() {
         />
 
         {loading ? (
-          <div className="text-slate-500">Carregando agendamentos...</div>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm animate-pulse space-y-2"
+              >
+                <div className="h-4 bg-slate-200 rounded w-1/3" />
+                <div className="h-3 bg-slate-200 rounded w-2/3" />
+                <div className="h-3 bg-slate-200 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="space-y-6">
             <div className="space-y-3">
