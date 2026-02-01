@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import ServiceCard from '../components/ServiceCard'
 import ServiceForm, { ServiceFormValues } from '../components/ServiceForm'
@@ -136,14 +137,28 @@ function Services() {
               Gerencie os serviços oferecidos no salão.
             </p>
           </div>
-          <button
-            type="button"
-            className="px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
-            onClick={handleOpenCreate}
-            disabled={loading}
-          >
-            Novo serviço
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
+              onClick={handleOpenCreate}
+              disabled={loading}
+            >
+              Novo serviço
+            </button>
+            <Link
+              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+              to="/agenda"
+            >
+              Agenda
+            </Link>
+            <Link
+              className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+              to="/clients"
+            >
+              Clientes
+            </Link>
+          </div>
         </div>
 
         {feedback && (

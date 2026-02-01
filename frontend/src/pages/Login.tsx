@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { ensureProfile, getSession, signIn } from '../services/auth'
+import { ensureProfile, getProfile, getSession, signIn } from '../services/auth'
 
 function Login() {
   const navigate = useNavigate()
@@ -13,13 +13,17 @@ function Login() {
   useEffect(() => {
     let isMounted = true
 
-    getSession().then(({ data }) => {
+    getSession().then(async ({ data }) => {
       if (!isMounted) {
         return
       }
 
       if (data.session) {
-        navigate('/agenda', { replace: true })
+        const profile = await getProfile()
+        const role = profile.data?.role === 'client' ? 'client' : 'professional'
+        navigate(role === 'client' ? '/cliente/servicos' : '/agenda', {
+          replace: true,
+        })
       }
     })
 
@@ -44,14 +48,19 @@ function Login() {
 
     await ensureProfile()
 
-    navigate('/agenda', { replace: true })
+    const profile = await getProfile()
+    const role = profile.data?.role === 'client' ? 'client' : 'professional'
+
+    navigate(role === 'client' ? '/cliente/servicos' : '/agenda', {
+      replace: true,
+    })
   }
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white shadow-sm rounded-xl p-8">
         <h1 className="text-2xl font-semibold text-slate-900">Corte em Dia</h1>
-        <p className="text-slate-500 mt-1">Acesso do profissional</p>
+        <p className="text-slate-500 mt-1">Acesso do sistema</p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>

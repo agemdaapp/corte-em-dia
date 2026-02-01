@@ -50,3 +50,23 @@ export async function ensureProfile() {
   })
 }
 
+export async function getProfile() {
+  const { data: userData, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !userData.user) {
+    return { data: null, error: userError }
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, role, name')
+    .eq('id', userData.user.id)
+    .maybeSingle()
+
+  if (error) {
+    return { data: null, error }
+  }
+
+  return { data, error: null }
+}
+
