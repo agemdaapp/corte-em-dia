@@ -431,6 +431,7 @@ export async function createAppointment(req: Request, res: Response) {
       service_id: serviceId,
       client_id: clientId,
       professional_id: professionalId,
+      date,
       start_time: startDateTime,
     })
     .select('*')
@@ -590,11 +591,13 @@ export async function updateAppointment(req: Request, res: Response) {
   const updates: {
     service_id: string
     client_id: string
+    date: string
     start_time: string
     professional_id: string
   } = {
     service_id: serviceId,
     client_id: providedClientId ?? current.client_id,
+    date,
     start_time: startDateTime,
     professional_id: req.user.id,
   }
