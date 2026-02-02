@@ -167,7 +167,7 @@ function ClientSchedule() {
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav
-        title="Corte em Dia - Agendamentos"
+        title="Corte em Dia"
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
