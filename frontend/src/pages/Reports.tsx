@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 import api from '../services/api'
 import TopNav from '../components/TopNav'
+import { useLogout } from '../hooks/useLogout'
+
 
 type ReportResponse = {
   start_date: string
@@ -35,6 +37,8 @@ function Reports() {
   const [error, setError] = useState<string | null>(null)
   const [report, setReport] = useState<ReportResponse | null>(null)
 
+  const logout = useLogout()
+
   const loadReport = async () => {
     setLoading(true)
     setError(null)
@@ -64,6 +68,7 @@ function Reports() {
           { label: 'Serviços', to: '/services' },
           { label: 'Clientes', to: '/clients' },
           { label: 'Relatórios', to: '/reports' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">

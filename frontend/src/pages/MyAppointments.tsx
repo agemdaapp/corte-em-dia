@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLogout } from '../hooks/useLogout'
 
 import api from '../services/api'
 import {
@@ -81,6 +82,8 @@ function MyAppointments() {
     isNotificationsEnabled()
   )
 
+  const logout = useLogout()
+
   const hasAppointments = useMemo(
     () => appointments.length > 0,
     [appointments.length]
@@ -147,6 +150,7 @@ function MyAppointments() {
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import api from '../services/api'
 import TopNav from '../components/TopNav'
+import { useLogout } from '../hooks/useLogout'
 
 type ClientApi = {
   id: string
@@ -59,6 +60,8 @@ function Clients() {
     phone: '',
     password: '',
   })
+
+  const logout = useLogout()
 
   const hasClients = useMemo(() => clients.length > 0, [clients.length])
 
@@ -197,6 +200,7 @@ function Clients() {
           { label: 'Serviços', to: '/services' },
           { label: 'Clientes', to: '/clients' },
           { label: 'Relatórios', to: '/reports' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-5xl mx-auto space-y-6 px-6 py-8">

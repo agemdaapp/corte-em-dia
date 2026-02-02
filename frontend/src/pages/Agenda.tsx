@@ -4,7 +4,8 @@ import AppointmentCard from '../components/AppointmentCard'
 import DayNavigator from '../components/DayNavigator'
 import TopNav from '../components/TopNav'
 import api from '../services/api'
-import { logoutAndRedirect } from '../utils/logout'
+import { useLogout } from '../hooks/useLogout'
+
 import { useNavigate } from 'react-router-dom'
 
 type AppointmentApi = {
@@ -173,6 +174,8 @@ function Agenda() {
   const [services, setServices] = useState<ServiceOption[]>([])
   const [clients, setClients] = useState<ClientOption[]>([])
 
+  const logout = useLogout()
+
   const loadAppointments = async (signal?: AbortSignal) => {
     setLoading(true)
 
@@ -274,11 +277,6 @@ function Agenda() {
       setFormLoading(false)
     }
   }
-
-  async function handleSignOut() {
-    await logoutAndRedirect(navigate)
-  }
-
 
   const handleOpenCreate = async () => {
     setFormMode('create')
@@ -388,7 +386,7 @@ function Agenda() {
           { label: 'Serviços', to: '/services' },
           { label: 'Clientes', to: '/clients' },
           { label: 'Relatórios', to: '/reports' },
-          { label: 'Sair', onClick: handleSignOut },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">

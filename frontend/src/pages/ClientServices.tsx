@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import TopNav from '../components/TopNav'
-import { logoutAndRedirect } from '../utils/logout'
+import { useLogout } from '../hooks/useLogout'
+
 
 type ServiceApi = {
   id: string
@@ -38,6 +39,9 @@ function ClientServices() {
   const [selectedProfessional, setSelectedProfessional] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const logout = useLogout()
+
 
   const hasServices = useMemo(() => services.length > 0, [services.length])
 
@@ -89,10 +93,6 @@ function ClientServices() {
     loadServices()
   }, [selectedProfessional])
 
-  async function handleSignOut() {
-    await logoutAndRedirect(navigate)
-  }
-
   const handleSelect = (serviceId: string) => {
     navigate(`/cliente/agendar?service_id=${serviceId}&professional_id=${selectedProfessional}`)
   }
@@ -104,7 +104,7 @@ function ClientServices() {
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
-          { label: 'Sair', onClick: handleSignOut },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">

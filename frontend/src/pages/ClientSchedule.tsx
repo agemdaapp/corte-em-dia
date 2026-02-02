@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-
+import { useLogout } from '../hooks/useLogout'
 import api from '../services/api'
 import TopNav from '../components/TopNav'
 
@@ -51,6 +51,8 @@ function ClientSchedule() {
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const logout = useLogout()
 
   useEffect(() => {
     const loadServices = async () => {
@@ -171,6 +173,7 @@ function ClientSchedule() {
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
