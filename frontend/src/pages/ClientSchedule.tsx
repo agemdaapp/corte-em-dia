@@ -39,7 +39,8 @@ function getToday() {
 function ClientSchedule() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const serviceId = searchParams.get('service') ?? ''
+  const serviceId = searchParams.get('service_id') ?? ''
+  const professionalId = searchParams.get('professional_id')
 
   const [services, setServices] = useState<ServiceApi[]>([])
   const [loadingServices, setLoadingServices] = useState(false)
@@ -53,11 +54,18 @@ function ClientSchedule() {
 
   useEffect(() => {
     const loadServices = async () => {
+      if (!professionalId) {
+        setError('Profissional não informado.')
+        return
+      }
+
       setLoadingServices(true)
       setError(null)
 
       try {
-        const response = await api.get('/services')
+        const response = await api.get('/services', {
+          params: { professional_id: professionalId },
+        })
         setServices(mapServices(response.data))
       } catch (requestError) {
         setError('Não foi possível carregar os serviços.')
@@ -67,7 +75,7 @@ function ClientSchedule() {
     }
 
     loadServices()
-  }, [])
+  }, [professionalId])
 
   const selectedService = useMemo(
     () => services.find((service) => service.id === serviceId) ?? null,

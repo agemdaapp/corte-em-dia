@@ -94,7 +94,7 @@ function ClientServices() {
   }
 
   const handleSelect = (serviceId: string) => {
-    navigate(`/cliente/agendar?service=${serviceId}`)
+    navigate(`/cliente/agendar?service_id=${serviceId}&professional_id=${selectedProfessional}`)
   }
 
   return (
