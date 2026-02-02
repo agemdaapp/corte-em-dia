@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import api from '../services/api'
 import TopNav from '../components/TopNav'
+import { useLogout } from '../hooks/useLogout'
+
 
 type ServiceApi = {
   id: string
   name: string
   duration_minutes: number
-  price?: number | null
+  price: number | null
 }
 
 type ProfessionalApi = {
@@ -38,6 +39,9 @@ function ClientServices() {
   const [selectedProfessional, setSelectedProfessional] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const logout = useLogout()
+
 
   const hasServices = useMemo(() => services.length > 0, [services.length])
 
@@ -90,16 +94,17 @@ function ClientServices() {
   }, [selectedProfessional])
 
   const handleSelect = (serviceId: string) => {
-    navigate(`/cliente/agendar?service=${serviceId}`)
+    navigate(`/cliente/agendar?service_id=${serviceId}&professional_id=${selectedProfessional}`)
   }
 
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav
-        title="Agendamentos"
+        title="Corte em Dia"
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
@@ -196,4 +201,3 @@ function ClientServices() {
 }
 
 export default ClientServices
-

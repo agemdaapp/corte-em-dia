@@ -5,6 +5,7 @@ import ServiceCard from '../components/ServiceCard'
 import ServiceForm, { ServiceFormValues } from '../components/ServiceForm'
 import TopNav from '../components/TopNav'
 import api from '../services/api'
+import { useLogout } from '../hooks/useLogout'
 
 type ServiceApi = {
   id: string
@@ -35,6 +36,8 @@ function Services() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingService, setEditingService] = useState<ServiceApi | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
+
+  const logout = useLogout()
 
   const hasServices = useMemo(() => services.length > 0, [services.length])
 
@@ -136,6 +139,7 @@ function Services() {
           { label: 'Serviços', to: '/services' },
           { label: 'Clientes', to: '/clients' },
           { label: 'Relatórios', to: '/reports' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-5xl mx-auto space-y-6 px-6 py-8">

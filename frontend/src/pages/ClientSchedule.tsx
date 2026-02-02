@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-
+import { useLogout } from '../hooks/useLogout'
 import api from '../services/api'
 import TopNav from '../components/TopNav'
 
@@ -39,7 +39,8 @@ function getToday() {
 function ClientSchedule() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const serviceId = searchParams.get('service') ?? ''
+  const serviceId = searchParams.get('service_id') ?? ''
+  const professionalId = searchParams.get('professional_id')
 
   const [services, setServices] = useState<ServiceApi[]>([])
   const [loadingServices, setLoadingServices] = useState(false)
@@ -51,13 +52,22 @@ function ClientSchedule() {
   const [feedback, setFeedback] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  const logout = useLogout()
+
   useEffect(() => {
     const loadServices = async () => {
+      if (!professionalId) {
+        setError('Profissional não informado.')
+        return
+      }
+
       setLoadingServices(true)
       setError(null)
 
       try {
-        const response = await api.get('/services')
+        const response = await api.get('/services', {
+          params: { professional_id: professionalId },
+        })
         setServices(mapServices(response.data))
       } catch (requestError) {
         setError('Não foi possível carregar os serviços.')
@@ -67,7 +77,7 @@ function ClientSchedule() {
     }
 
     loadServices()
-  }, [])
+  }, [professionalId])
 
   const selectedService = useMemo(
     () => services.find((service) => service.id === serviceId) ?? null,
@@ -159,10 +169,11 @@ function ClientSchedule() {
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav
-        title="Agendamentos"
+        title="Corte em Dia"
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+          { label: 'Sair', onClick: logout },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
