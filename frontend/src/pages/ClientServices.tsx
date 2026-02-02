@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import api from '../services/api'
 import TopNav from '../components/TopNav'
+import { logoutAndRedirect } from '../utils/logout'
 
 type ServiceApi = {
   id: string
@@ -89,6 +89,10 @@ function ClientServices() {
     loadServices()
   }, [selectedProfessional])
 
+  async function handleSignOut() {
+    await logoutAndRedirect(navigate)
+  }
+
   const handleSelect = (serviceId: string) => {
     navigate(`/cliente/agendar?service=${serviceId}`)
   }
@@ -100,6 +104,7 @@ function ClientServices() {
         items={[
           { label: 'Serviços', to: '/cliente/servicos' },
           { label: 'Meus agendamentos', to: '/cliente/meus-agendamentos' },
+          { label: 'Sair', onClick: handleSignOut },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
@@ -196,4 +201,3 @@ function ClientServices() {
 }
 
 export default ClientServices
-

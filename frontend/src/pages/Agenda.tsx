@@ -4,6 +4,8 @@ import AppointmentCard from '../components/AppointmentCard'
 import DayNavigator from '../components/DayNavigator'
 import TopNav from '../components/TopNav'
 import api from '../services/api'
+import { logoutAndRedirect } from '../utils/logout'
+import { useNavigate } from 'react-router-dom'
 
 type AppointmentApi = {
   id?: string
@@ -152,6 +154,7 @@ function mapAppointments(payload: unknown): AppointmentView[] {
 }
 
 function Agenda() {
+  const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState(getToday)
   const [loading, setLoading] = useState(false)
   const [appointments, setAppointments] = useState<AppointmentView[]>([])
@@ -272,6 +275,11 @@ function Agenda() {
     }
   }
 
+  async function handleSignOut() {
+    await logoutAndRedirect(navigate)
+  }
+
+
   const handleOpenCreate = async () => {
     setFormMode('create')
     setEditingId(null)
@@ -380,6 +388,7 @@ function Agenda() {
           { label: 'Serviços', to: '/services' },
           { label: 'Clientes', to: '/clients' },
           { label: 'Relatórios', to: '/reports' },
+          { label: 'Sair', onClick: handleSignOut },
         ]}
       />
       <div className="max-w-4xl mx-auto space-y-6 px-6 py-8">
