@@ -8,7 +8,7 @@ type ServiceApi = {
   id: string
   name: string
   duration_minutes: number
-  price?: number | null
+  price: number | null
 }
 
 type ProfessionalApi = {
