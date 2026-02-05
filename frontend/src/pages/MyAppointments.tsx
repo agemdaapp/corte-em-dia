@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLogout } from '../hooks/useLogout'
+import { toDateDisplay, toTimeDisplay } from '../utils/datetime'
 
 import api from '../services/api'
 import {
@@ -31,17 +32,9 @@ function formatDateTime(startTime?: string | null, endTime?: string | null) {
     return { dateLabel: '--/--/----', timeLabel: '--:--' }
   }
 
-  const startDate = new Date(startTime)
-  const endDate = endTime ? new Date(endTime) : null
-
-  const dateLabel = startDate.toLocaleDateString('pt-BR')
-  const startLabel = startDate.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  const endLabel = endDate
-    ? endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    : null
+  const dateLabel = toDateDisplay(startTime)
+  const startLabel = toTimeDisplay(startTime)
+  const endLabel = endTime ? toTimeDisplay(endTime) : null
 
   return {
     dateLabel,

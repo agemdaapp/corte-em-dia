@@ -5,8 +5,8 @@ import DayNavigator from '../components/DayNavigator'
 import TopNav from '../components/TopNav'
 import api from '../services/api'
 import { useLogout } from '../hooks/useLogout'
-
 import { useNavigate } from 'react-router-dom'
+import { toTimeDisplay } from '../utils/datetime'
 
 type AppointmentApi = {
   id?: string
@@ -58,26 +58,6 @@ function getToday() {
   const month = String(today.getMonth() + 1).padStart(2, '0')
   const day = String(today.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
-}
-
-function formatTime(value?: string | null) {
-  if (!value) {
-    return ''
-  }
-
-  const match = /^(\d{2}):(\d{2})$/.exec(value)
-  if (match) {
-    return value
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  const hours = String(date.getUTCHours()).padStart(2, '0')
-  const minutes = String(date.getUTCMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
 }
 
 function parseTimeToMinutes(value: string) {
@@ -138,8 +118,8 @@ function mapAppointments(payload: unknown): AppointmentView[] {
       : []
 
   return (list as AppointmentApi[]).map((item, index) => {
-    const startTime = formatTime(item.start_time)
-    const endTime = formatTime(item.end_time)
+    const startTime = toTimeDisplay(item.start_time)
+    const endTime = toTimeDisplay(item.end_time)
 
     return {
       id: item.id ?? `${item.start_time ?? 'start'}-${index}`,
